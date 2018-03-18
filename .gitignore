@@ -1,0 +1,10 @@
+# package directories
+node_modules
+jspm_packages
+dist
+data/*
+
+# Serverless directories
+.serverless
+
+yarn-error.log
