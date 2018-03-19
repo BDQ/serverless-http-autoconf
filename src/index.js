@@ -153,16 +153,16 @@ const addFunctionCustomConfig= (serverless) => {
     let { servicePath } = serverless.config
 
     try {
-      let compiledPath = `./dist/service/${functionDefinition.handler.replace('.handler', '')}`
+      let compiledPath = `./dist/service/${functionDefinition.handler.replace('.handler', '.js')}`
       console.log(compiledPath)
-      // if (fs.existsSync(compiledPath)) {
-        // console.log('file exists')
+      if (fs.existsSync(compiledPath)) {
+        console.log('file exists')
         let compiledCode = require(compiledPath)
 
         if (compiledCode.config) {
           Object.assign(functionDefinition, compiledCode.config())
         }
-      // }
+      }
     } catch(err) {
       console.log(err.message)
     }
