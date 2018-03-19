@@ -1,6 +1,6 @@
 {
   "name": "serverless-http-autoconf",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Automatically configures serverless functions and http events using file structure.",
   "main": "dist/main.js",
   "repository": "https://github.com/BDQ/serverless-http-autoconf",
@@ -35,8 +35,7 @@
   },
   "author": "Brian D. Quinn",
   "license": "MIT",
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "babel-core": "^6.26.0",
     "babel-jest": "^23.0.0-alpha.0",
