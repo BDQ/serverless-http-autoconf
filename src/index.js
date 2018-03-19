@@ -1,3 +1,5 @@
+import {httpMethodFromAction} from './configBuilder'
+
 const inflection = require('inflection')
 const path = require('path')
 const fs = require('fs')
@@ -9,18 +11,6 @@ const basePath = (serverless) => {
     return 'src/api'
   }
 
-}
-
-// checks if the action name matches one of our trigger words.. WOOF!
-//
-const httpMethodFromAction = (action) => {
-  switch(action.toLowerCase()){
-    case 'show':
-    case 'list': return('get')
-    case 'create': return('post')
-    case 'update': return('put')
-    case 'destroy': return('delete')
-  }
 }
 
 // another resursive function for building up (nested) routes
@@ -48,7 +38,6 @@ const buildPath = (resource, isCollection, pathConfig) => {
     pathConfig.request.parameters.paths[`${singular}Id`] = true
   }
 
-
   if (resource.length === 0) {
     return pathConfig
   } else {
@@ -71,6 +60,7 @@ const buildConfig = (resource, action, base) => {
       cors: true
     }}
 
+    let pathConfig = {}
     if ((method === 'get' && action.toLowerCase() === 'list') || (method === 'post')){
       pathConfig = buildPath(resource, true)
       event.http = { ...event.http, ...pathConfig }
@@ -89,7 +79,6 @@ const buildConfig = (resource, action, base) => {
 // enumerates all the functions and auto-generates config including HTTP event if named correctly.
 // oh and it's recursive - cause you know directories 
 const enumerateHandlers = (dir, base, namePrefix, config = {}) => {
-
   // list directories + files in base dir
   const files = fs.readdirSync(dir).map(f => path.join(dir, f))
 
@@ -141,7 +130,10 @@ const addFunctionsDefinitions = (serverless) => {
 
   // TODO read the ./src/handlers string from config (with default)
   let base = basePath(serverless)
-  let functionsConfig = enumerateHandlers(__dirname + `/../${base}`, base, namePrefix)
+  let { servicePath } = serverless.config
+  let functionsConfig = enumerateHandlers(`${servicePath}/${base}`, base, namePrefix)
+
+  // console.log(JSON.stringify(functionsConfig, null, 2))
 
   serverless.service.functions = { ...functionsConfig, ...serverless.service.functions }
 
@@ -158,17 +150,27 @@ const addFunctionCustomConfig= (serverless) => {
   for (let functionName in functions){
     let functionDefinition = functions[functionName]
 
-    let compiledPath = `../dist/service/${functionDefinition.handler.replace('.handler', '.js')}`
-    let compiledCode = require(compiledPath)
+    let { servicePath } = serverless.config
 
-    if (compiledCode.config) {
-      Object.assign(functionDefinition, compiledCode.config())
+    try {
+      let compiledPath = `./dist/service/${functionDefinition.handler.replace('.handler', '')}`
+      console.log(compiledPath)
+      // if (fs.existsSync(compiledPath)) {
+        // console.log('file exists')
+        let compiledCode = require(compiledPath)
+
+        if (compiledCode.config) {
+          Object.assign(functionDefinition, compiledCode.config())
+        }
+      // }
+    } catch(err) {
+      console.log(err.message)
     }
   }
 
 }
 
-class FunctionAutoConfig {
+class ServerlessHttpAutoConf {
   constructor (serverless, options) {
     this.hooks = {
       // for package / deploy / etc
@@ -182,4 +184,5 @@ class FunctionAutoConfig {
     }
   }
 }
-module.exports = FunctionAutoConfig
+
+module.exports = ServerlessHttpAutoConf

@@ -3,6 +3,7 @@ node_modules
 jspm_packages
 dist
 data/*
+.vscode/
 
 # Serverless directories
 .serverless
